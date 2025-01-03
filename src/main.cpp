@@ -18,11 +18,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    SDL_Window *window = NULL;
-    SDL_Renderer *renderer = NULL;
+    SDL_Window *window = nullptr;
 
-    if (!SDL_CreateWindowAndRenderer("SDL issue", 640, 480, 0, &window, &renderer)) {
-        SDL_Log("SDL_CreateWindowAndRenderer failed (%s)", SDL_GetError());
+    if (!(window = SDL_CreateWindow("Graphics playground", 640, 480, 0))) {
+        SDL_Log("SDL_CreateWindow (%s)", SDL_GetError());
         SDL_Quit();
         return 1;
     }
@@ -40,12 +39,8 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        SDL_SetRenderDrawColor(renderer, 160, 80, 80, SDL_ALPHA_OPAQUE);
-        SDL_RenderClear(renderer);
-        SDL_RenderPresent(renderer);
     }
 
-    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
     SDL_Quit();
