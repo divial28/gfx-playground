@@ -1,13 +1,5 @@
-/**
- * Modify this source such that it reproduces your problem.
- */
-
-/* START of source modifications */
-
+#include "SDL3/SDL_video.h"
 #include <SDL3/SDL.h>
-/*
- * SDL3/SDL_main.h is explicitly not included such that a terminal window would appear on Windows.
- */
 
 int main(int argc, char *argv[]) {
     (void)argc;
@@ -18,13 +10,22 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    SDL_Window *window = nullptr;
-
-    if (!(window = SDL_CreateWindow("Graphics playground", 640, 480, 0))) {
+    auto window = SDL_CreateWindow("Graphics playground", 640, 480,
+                                   SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    if (!window) {
         SDL_Log("SDL_CreateWindow (%s)", SDL_GetError());
         SDL_Quit();
         return 1;
     }
+
+    auto glcontext = SDL_GL_CreateContext(window);
+    if (!glcontext) {
+        SDL_Log("SDL_GL_CreateContext (%s)", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+
 
     while (1) {
         int finished = 0;
@@ -39,12 +40,14 @@ int main(int argc, char *argv[]) {
             break;
         }
 
+        // glClearColor(0,0,0,1);
+        // glClear(GL_COLOR_BUFFER_BIT);
+        SDL_GL_SwapWindow(window);
     }
 
+    SDL_GL_DestroyContext(glcontext);
     SDL_DestroyWindow(window);
 
     SDL_Quit();
     return 0;
 }
-
-/* END of source modifications */
