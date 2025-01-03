@@ -1,5 +1,5 @@
-#include "SDL3/SDL_video.h"
 #include <SDL3/SDL.h>
+#include <glad/glad.h>
 
 int main(int argc, char *argv[]) {
     (void)argc;
@@ -25,23 +25,38 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+        SDL_Log("Failed to initialize OpenGL context\n");
+        return -1;
+    }
 
+    // Successfully loaded OpenGL
+    SDL_Log("Loaded OpenGL %d.%d\n", GLVersion.major, GLVersion.minor);
 
     while (1) {
         int finished = 0;
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            // tried to get rid of black areas on resize, didnt help
+            // if(event.window.type == SDL_EVENT_WINDOW_RESIZED) {
+            //     int w = 0, h = 0; 
+            //     if (SDL_GetWindowSize(window, &w, &h) && w && h) {
+            //         glViewport(0, 0, w, h);
+            //     }
+            //     continue;
+            // }
             if (event.type == SDL_EVENT_QUIT) {
                 finished = 1;
                 break;
             }
         }
+
         if (finished) {
             break;
         }
 
-        // glClearColor(0,0,0,1);
-        // glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.7, 0.3, 0.3, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
         SDL_GL_SwapWindow(window);
     }
 
