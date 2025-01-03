@@ -20,10 +20,18 @@ add_subdirectory(externals/SDL EXCLUDE_FROM_ALL)
 add_executable( ${PROJECT_NAME} 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/glad/src/glad.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui_demo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui_draw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui_tables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/backends/imgui_impl_sdl3.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-target_include_directories( ${PROJECT_NAME} 
-    PRIVATE externals/glad/include
+target_include_directories( ${PROJECT_NAME} PRIVATE
+    externals/glad/include
+    externals/imgui
 )
 
 target_link_libraries( ${PROJECT_NAME}
