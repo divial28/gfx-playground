@@ -15,6 +15,7 @@ int App::Exec()
         ProcessEvents();
         Update();
     }
+    return 0;
 }
 
 void App::Init()
@@ -117,8 +118,10 @@ void App::ProcessEvents()
     {
         ImGui_ImplSDL3_ProcessEvent(&event);
         if (event.type == SDL_EVENT_QUIT)
+            // SDL_Log("SDL_EVENT_QUIT");
             running = false;
         if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
+            // SDL_Log("SDL_EVENT_WINDOW_CLOSE_REQUESTED");
             running = false;
     }
     // if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
