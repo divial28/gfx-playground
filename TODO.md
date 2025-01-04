@@ -1,7 +1,11 @@
 # general
-- [ ] handle DPI
+- [X] handle DPI (by hand, still problems with wayland dpi)
 - [X] orginize files
-- [ ] minimal imgui wrapper/framework for ease
+- [ ] minimal ui framework
+  - [ ] make own imgui sdl/opengl implementation
+  - [ ] make window wrapper: every window is separate sdl window with ImGui::Begin/End pair inside
+- [ ] persist window position and size
+- [ ] persist app state (opened windows, dpi, etc.)
 
 # graphics
 - [ ] hello triangle

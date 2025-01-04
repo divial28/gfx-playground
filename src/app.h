@@ -17,11 +17,16 @@ private:
     bool InitImGui();
     void ProcessEvents();
     void Update();
-    void UpdateUI();
+    bool UpdateUI();
+    void UpdateUIScaling(float scale);
     void Shutdown();
+
+    // debug
+    void ShowDisplayInfo();
 
 private:
     SDL_Window* window = nullptr;
     SDL_GLContextState* glcontext = nullptr;
     bool running = true;
+    float dpi = 1.25;
 };
