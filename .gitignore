@@ -34,3 +34,4 @@
 # temp files
 /build
 /.cache
+/.vscode

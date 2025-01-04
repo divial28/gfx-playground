@@ -1,6 +1,6 @@
 # general
 - [ ] handle DPI
-- [ ] orginize files
+- [X] orginize files
 - [ ] minimal imgui wrapper/framework for ease
 
 # graphics

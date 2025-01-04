@@ -17,8 +17,10 @@ set(SDL_DIALOG_DEFAULT OFF)
 set(SDL_THREADS_DEFAULT OFF)
 add_subdirectory(externals/SDL EXCLUDE_FROM_ALL)
 
+file(GLOB SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+
 add_executable( ${PROJECT_NAME} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+    ${SRC_FILES}
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/glad/src/glad.c
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui_demo.cpp
