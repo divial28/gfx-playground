@@ -107,12 +107,24 @@ void ImGuiUpdate(ImGuiContext* imguiContext, std::string_view title, float& f, i
     ImGui::Render();
 }
 
-void GLRender(SDL_Window* window, SDL_GLContext glContext, ImVec4 clearColor)
+void Render(SDL_Window* window, SDL_GLContext glContext, ImVec4 clearColor)
 {
     SDL_GL_MakeCurrent(window, glContext);
     // glViewport() doesn't affect anything, guess on other platforms might be necessary
     glClearColor(clearColor.x * clearColor.w, clearColor.y * clearColor.w, clearColor.z * clearColor.w, clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void ImGuiRender(SDL_Window* window, SDL_GLContext glContext, ImGuiContext* imguiContext)
+{
+    ImGui::SetCurrentContext(imguiContext);
+    SDL_GL_MakeCurrent(window, glContext);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void SwapBuffers(SDL_Window* window)
+{
+    SDL_GL_SwapWindow(window);
 }
 
 void DestroyImGuiContext(ImGuiContext* imguiContext)
@@ -158,37 +170,38 @@ int main(int, char**)
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            ProcessEvent(window, imguiContext, event);
-            ProcessEvent(window2, imguiContext2, event);
+            ProcessEvent(window, imguiContext, event); // canvas 1
+            ProcessEvent(window2, imguiContext2, event); // canvas 2
             if (event.type == SDL_EVENT_QUIT) {
                 done = true;
             }
         }
 
-        {
+        { // update and render canvas 1
             static float f = 0.0f;
             static int counter = 0;
             static bool checked;
-            ImGuiUpdate(imguiContext, "Window A", f, counter, checked); // switches current imgui context
-            GLRender(window, glContext, {0.7, 0.4, 0.3, 1.0});  // switches gl context to current platform window
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // render imgui on top of gl drawings
-            SDL_GL_SwapWindow(window); // dont forget to swap buffers
+            ImGuiUpdate(imguiContext, "Window A", f, counter, checked);
+            Render(window, glContext, {0.7, 0.4, 0.3, 1.0});
+            ImGuiRender(window, glContext, imguiContext);
+            SwapBuffers(window);
         }
-        {
+        { // update and render canvas 2
             static float f = 0.0f;
             static int counter = 0;
             static bool checked;
-            ImGuiUpdate(imguiContext2, "Window B", f, counter, checked); // switches current imgui context
-            GLRender(window2, glContext, {0.2, 0.6, 0.3, 1.0});  // switches gl context to current platform window
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // render imgui on top of gl drawings
-            SDL_GL_SwapWindow(window2); // dont forget to swap buffers
+            ImGuiUpdate(imguiContext2, "Window B", f, counter, checked);
+            Render(window2, glContext, {0.2, 0.6, 0.3, 1.0});
+            ImGuiRender(window2, glContext, imguiContext2);
+            SwapBuffers(window2);
         }
     }
 
-    // Cleanup
+    // Destroy canvas 1
     DestroyImGuiContext(imguiContext);
-    DestroyImGuiContext(imguiContext2);
     DestroyPlatformWindow(window);
+    // Destroy canvas 2
+    DestroyImGuiContext(imguiContext2);
     DestroyPlatformWindow(window2);
     ShutdownSDL();
 
