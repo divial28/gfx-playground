@@ -5,9 +5,8 @@
 #include <SDL3/SDL.h>
 #include <imgui.h>
 
-// must be included after glad!
-#include <backends/imgui_impl_opengl3.h>
-#include <backends/imgui_impl_sdl3.h>
+#include "./backends/imgui_impl_opengl3.h"
+#include "./backends/imgui_impl_sdl3.h"
 
 #include <cassert>
 #include <cstdio>
@@ -102,7 +101,6 @@ static void DestroyGLContext(SDL_GLContext glContext)
 
 static ImGuiContext* CreateImGuiContext(SDL_Window* window, SDL_GLContext glContext, ImFontAtlas* fontAtlas, std::string_view iniFilename)
 {
-    static constexpr const char* glsl_version = "#version 130";
 
     auto lastWindow = SDL_GL_GetCurrentWindow();
     auto lastImGuiContext = ImGui::GetCurrentContext();
@@ -117,7 +115,7 @@ static ImGuiContext* CreateImGuiContext(SDL_Window* window, SDL_GLContext glCont
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     ImGui::StyleColorsLight();
     ImGui_ImplSDL3_InitForOpenGL(window, glContext);
-    ImGui_ImplOpenGL3_Init(glsl_version);
+    ImGui_ImplOpenGL3_Init();
 
     SDL_GL_MakeCurrent(lastWindow, glContext);
     ImGui::SetCurrentContext(lastImGuiContext);
