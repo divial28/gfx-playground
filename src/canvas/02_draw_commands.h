@@ -5,16 +5,20 @@
 
 #include <glad/glad.h>
 
-class HelloTriangleCanvas : public Canvas
+class DrawCommandsCanvas : public Canvas
 {
 public:
-    HelloTriangleCanvas();
-    ~HelloTriangleCanvas();
+    DrawCommandsCanvas();
+    ~DrawCommandsCanvas();
 
     void BuildUI() override;
     void Render() override;
 
 private:
     GLuint shader_;
+    GLuint vao_;
+    GLuint vbo_;
+    GLuint ebo_;
+
     Color bgColor_ = Utils::GetNextColorFromPalette();
 };

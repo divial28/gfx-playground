@@ -1,22 +1,17 @@
-#include "01_hello_triangle.h"
+#include "02_draw_commands.h"
 #include "gl/framework.h"
-#include "utils.h"
 
 #include <imgui.h>
 
 
-HelloTriangleCanvas::HelloTriangleCanvas() 
+DrawCommandsCanvas::DrawCommandsCanvas() 
 {
     shader_ = GL::CreateShader(
         R"(#version 460 core
+        in vec3 pos;
         void main()
         {
-            vec2 points[3] = vec2[3](
-                vec2(-0.7, -0.7),
-                vec2(0.0, 0.7),
-                vec2(0.7, -0.7)
-            );
-            gl_Position = vec4(points[gl_VertexID], 0.0, 1.0);
+            gl_Position = vec4(pos, 1.0);
         })",
         R"(#version 460 core
         out vec4 color;
@@ -25,20 +20,27 @@ HelloTriangleCanvas::HelloTriangleCanvas()
             color = vec4(1.0, 0.0, 0.0, 1.0);
         })"
     );
+
+    glCreateBuffers(1, &vao_);
+    glCreateBuffers(1, &vbo_);
+    glCreateBuffers(1, &ebo_);
+
 }
 
-HelloTriangleCanvas::~HelloTriangleCanvas() { }
-
-void HelloTriangleCanvas::BuildUI()
+DrawCommandsCanvas::~DrawCommandsCanvas() 
 {
-    static int a;
-    ImGui::Begin("Hello window");
-    ImGui::Text("hello pretty ui");
-    ImGui::DragInt("int", &a);
+    glDeleteBuffers(1, &ebo_);
+    glDeleteBuffers(1, &vbo_);
+    glDeleteBuffers(1, &vao_);
+}
+
+void DrawCommandsCanvas::BuildUI()
+{
+    ImGui::Begin("settings");
     ImGui::End();
 }
 
-void HelloTriangleCanvas::Render()
+void DrawCommandsCanvas::Render()
 {
     const auto size = ImGui::GetMainViewport()->Size;
     glViewport(0, 0, size.x, size.y);

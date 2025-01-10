@@ -1,7 +1,6 @@
 #pragma once
 
 #include "canvas.h"
-#include "utils.h"
 
 #include <glad/glad.h>
 
@@ -16,5 +15,4 @@ public:
 
 private:
     GLuint shader_;
-    Color bgColor_ = Utils::GetNextColorFromPalette();
 };

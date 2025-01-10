@@ -7,6 +7,7 @@
   it was a problewm with texture, made it global and init just one time
 - [X] dpi (just use different bigger font)
 - [ ] imgui config save for each context
+- [ ] spdlog logging
 - [ ] ? resource manager
 
 # graphics

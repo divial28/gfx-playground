@@ -1,5 +1,6 @@
 #include "main_canvas.h"
 #include "01_hello_triangle.h"
+#include "02_draw_commands.h"
 #include "app.h"
 
 #include <array>
@@ -47,7 +48,9 @@ void MainCanvas::Render()
 void MainCanvas::FillExamplesVector()
 {
     examples_.emplace_back("Hello triangle",
-                           []() -> Canvas* { return new HelloTriangle; });
+                           []() -> Canvas* { return new HelloTriangleCanvas; });
+    examples_.emplace_back("Draw Commands",
+                           []() -> Canvas* { return new DrawCommandsCanvas; });
 }
 
 void MainCanvas::TableRow(size_t i)
