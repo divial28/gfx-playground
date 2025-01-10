@@ -16,12 +16,13 @@
 //  ES 3.0    300       "#version 300 es"   = WebGL 2.0
 //----------------------------------------
 
-#include "imgui.h"
+#include "gl/framework.h"
+#include <imgui.h>
 #ifndef IMGUI_DISABLE
 #include "imgui_impl_opengl3.h"
 #include <glad/glad.h>
 #include <stdint.h> // intptr_t
-#include <stdio.h>
+
 
 // Clang/GCC warnings with -Weverything
 #if defined(__clang__)
@@ -51,22 +52,6 @@
     "-Wstrict-overflow" // warning: assuming signed overflow does not occur when
                         // simplifying division / ..when changing X +- C1 cmp C2
                         // to X cmp C2 -+ C1
-#endif
-
-// [Debugging]
-// #define IMGUI_IMPL_OPENGL_DEBUG
-#ifdef IMGUI_IMPL_OPENGL_DEBUG
-#include <stdio.h>
-#define GL_CALL(_CALL)                                                         \
-    do {                                                                       \
-        _CALL;                                                                 \
-        GLenum gl_err = glGetError();                                          \
-        if (gl_err != 0)                                                       \
-            fprintf(stderr, "GL error 0x%x returned from '%s'.\n", gl_err,     \
-                    #_CALL);                                                   \
-    } while (0) // Call with error check
-#else
-#define GL_CALL(_CALL) _CALL // Call without error check
 #endif
 
 // OpenGL Data
@@ -479,50 +464,6 @@ void ImGuiGLDestroyFontsTexture()
     }
 }
 
-// If you get an error please report on github. You may try different GL context
-// version or GLSL version. See GL<>GLSL version table at the top of this file.
-static bool CheckShader(GLuint handle, const char* desc)
-{
-    ImGuiGLData* bd = ImGuiGLGetBackendData();
-    GLint        status = 0, logLength = 0;
-    glGetShaderiv(handle, GL_COMPILE_STATUS, &status);
-    glGetShaderiv(handle, GL_INFO_LOG_LENGTH, &logLength);
-    if ((GLboolean)status == GL_FALSE)
-        fprintf(stderr,
-                "ERROR: ImGui_ImplOpenGL3_CreateDeviceObjects: failed to "
-                "compile %s!\n",
-                desc);
-    if (logLength > 1) {
-        ImVector<char> buf;
-        buf.resize((int)(logLength + 1));
-        glGetShaderInfoLog(handle, logLength, nullptr, (GLchar*)buf.begin());
-        fprintf(stderr, "%s\n", buf.begin());
-    }
-    return (GLboolean)status == GL_TRUE;
-}
-
-// If you get an error please report on GitHub. You may try different GL context
-// version or GLSL version.
-static bool CheckProgram(GLuint handle, const char* desc)
-{
-    ImGuiGLData* bd = ImGuiGLGetBackendData();
-    GLint        status = 0, logLength = 0;
-    glGetProgramiv(handle, GL_LINK_STATUS, &status);
-    glGetProgramiv(handle, GL_INFO_LOG_LENGTH, &logLength);
-    if ((GLboolean)status == GL_FALSE)
-        fprintf(stderr,
-                "ERROR: ImGui_ImplOpenGL3_CreateDeviceObjects: failed to link "
-                "%s!\n",
-                desc);
-    if (logLength > 1) {
-        ImVector<char> buf;
-        buf.resize((int)(logLength + 1));
-        glGetProgramInfoLog(handle, logLength, nullptr, (GLchar*)buf.begin());
-        fprintf(stderr, "%s\n", buf.begin());
-    }
-    return (GLboolean)status == GL_TRUE;
-}
-
 bool ImGuiGLCreateShader()
 {
     if (g_shaderHandle) {
@@ -555,32 +496,8 @@ bool ImGuiGLCreateShader()
           "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
           "}\n";
 
-    // Create shaders
-    GLuint vertHandle;
-    GL_CALL(vertHandle = glCreateShader(GL_VERTEX_SHADER));
-    glShaderSource(vertHandle, 1, &vertexShader, nullptr);
-    glCompileShader(vertHandle);
-    CheckShader(vertHandle, "vertex shader");
-
-    GLuint fragHandle;
-    GL_CALL(fragHandle = glCreateShader(GL_FRAGMENT_SHADER));
-    glShaderSource(fragHandle, 1, &fragmentShader, nullptr);
-    glCompileShader(fragHandle);
-    CheckShader(fragHandle, "fragment shader");
-
-    // Link
-    g_shaderHandle = glCreateProgram();
-    glAttachShader(g_shaderHandle, vertHandle);
-    glAttachShader(g_shaderHandle, fragHandle);
-    glLinkProgram(g_shaderHandle);
-    CheckProgram(g_shaderHandle, "shader program");
-
-    glDetachShader(g_shaderHandle, vertHandle);
-    glDetachShader(g_shaderHandle, fragHandle);
-    glDeleteShader(vertHandle);
-    glDeleteShader(fragHandle);
-
-    return true;
+    g_shaderHandle = GL::CreateShader(vertexShader, fragmentShader);
+    return g_shaderHandle != 0;
 }
 
 void ImGuiGLDestroyShader()

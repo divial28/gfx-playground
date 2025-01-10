@@ -5,11 +5,12 @@
 - [X] extract backend code into separated framework
 - [X] fix issue with black rects after imgui context deletion
   it was a problewm with texture, made it global and init just one time
-- [ ] dpi (just use different bigger font)
+- [X] dpi (just use different bigger font)
+- [ ] imgui config save for each context
 - [ ] ? resource manager
 
 # graphics
-- [ ] hello triangle
+- [X] hello triangle
 - [ ] things from red book
   - [ ] different commands
   - [ ] instancing
