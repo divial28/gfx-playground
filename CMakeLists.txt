@@ -30,8 +30,9 @@ add_executable( ${PROJECT_NAME}
 )
 
 target_include_directories( ${PROJECT_NAME} PRIVATE
-    externals/glad/include
-    externals/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/glad/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui
 )
 
 target_link_libraries( ${PROJECT_NAME}

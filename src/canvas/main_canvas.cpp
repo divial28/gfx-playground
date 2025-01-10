@@ -1,5 +1,5 @@
 #include "main_canvas.h"
-#include "../app.h"
+#include "app.h"
 #include "example_canvas.h"
 
 #include <glad/glad.h>

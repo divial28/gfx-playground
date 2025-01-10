@@ -1,11 +1,12 @@
 # general
-- [X] handle DPI (by hand, still problems with wayland dpi)
 - [X] orginize files
 - [X] multiple contexts render
 - [X] multiple contexts event handling
 - [X] extract backend code into separated framework
-- [ ] fix issue with black rects after imgui context deletion
-  - [ ] dig into imgui opengl impl, I guess it deletes some shared objects. after another creation all comes fine
+- [X] fix issue with black rects after imgui context deletion
+  it was a problewm with texture, made it global and init just one time
+- [ ] dpi (just use different bigger font)
+- [ ] ? resource manager
 
 # graphics
 - [ ] hello triangle
@@ -13,3 +14,14 @@
   - [ ] different commands
   - [ ] instancing
   - [ ] transform feedback
+- [ ] gl framework
+  - [ ] shader load/compile/link/destroy
+  - [ ] texture load/destroy
+  - [ ] buffers routine
+    - [ ] vao
+    - [ ] vbo
+    - [ ] ebo
+    - [ ] ...
+  - [ ] render pass 
+    - [ ] draw commands
+    - [ ] render pipeline

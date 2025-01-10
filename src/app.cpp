@@ -115,10 +115,8 @@ static ImGuiContext* CreateImGuiContext(SDL_Window*      window,
     ImGui::SetCurrentContext(imguiContext);
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = iniFilename.data();
-    io.FontGlobalScale = 2;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     ImGui::StyleColorsLight();
     ImGuiSDL3InitForOpenGL(window, glContext);
     ImGuiGLInitContext();
@@ -204,6 +202,9 @@ void AppImpl::InitRenderer()
 void AppImpl::InitUI()
 {
     fontAtlas_ = new ImFontAtlas();
+    fontAtlas_->Clear();
+    fontAtlas_->AddFontFromFileTTF("../externals/imgui/misc/fonts/Cousine-Regular.ttf", 24);
+    fontAtlas_->Build();
     ImGuiGLInit();
 }
 
