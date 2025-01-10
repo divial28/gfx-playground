@@ -47,6 +47,7 @@ namespace {
         void Shutdown();
         void ShutdownPlatform();
         void ShutdownRenderer();
+        void ShutdownUI();
 
         bool OpenWindow(Canvas* canvas);
         // bool ShowWindow(Canvas* canvas);
@@ -115,7 +116,7 @@ static ImGuiContext* CreateImGuiContext(SDL_Window* window, SDL_GLContext glCont
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     ImGui::StyleColorsLight();
     ImGui_ImplSDL3_InitForOpenGL(window, glContext);
-    ImGui_ImplOpenGL3_Init();
+    ImGui_ImplOpenGL3_InitContext();
 
     SDL_GL_MakeCurrent(lastWindow, glContext);
     ImGui::SetCurrentContext(lastImGuiContext);
@@ -130,7 +131,7 @@ static void DestroyImGuiContext(ImGuiContext* imguiContext)
     auto lastImGuiContext = ImGui::GetCurrentContext();
 
     ImGui::SetCurrentContext(imguiContext);
-    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplOpenGL3_ShutdownContext();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 
@@ -205,6 +206,7 @@ void AppImpl::InitRenderer()
 void AppImpl::InitUI()
 {
     fontAtlas = new ImFontAtlas();
+    ImGui_ImplOpenGL3_Init();
 }
 
 int AppImpl::Loop()
@@ -272,6 +274,7 @@ void AppImpl::UpdateWindows()
 void AppImpl::Shutdown()
 {
     CloseAllWindows();
+    ShutdownUI();
     ShutdownRenderer();
     ShutdownPlatform();
 }
@@ -286,6 +289,11 @@ void AppImpl::ShutdownRenderer()
 {
     SDL_GL_MakeCurrent(nullptr, nullptr);
     SDL_GL_DestroyContext(glContext);
+}
+
+void AppImpl::ShutdownUI()
+{
+    ImGui_ImplOpenGL3_Shutdown();
 }
 
 bool AppImpl::OpenWindow(Canvas* canvas)

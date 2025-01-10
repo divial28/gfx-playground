@@ -53,8 +53,6 @@
 // OpenGL Data
 struct ImGui_ImplOpenGL3_Data
 {
-    GLuint          FontTexture;
-    GLuint          ShaderHandle;
     GLint           AttribLocationTex;       // Uniforms location
     GLint           AttribLocationProjMtx;
     GLuint          AttribLocationVtxPos;    // Vertex attributes location
@@ -67,6 +65,11 @@ struct ImGui_ImplOpenGL3_Data
     ImGui_ImplOpenGL3_Data() { memset((void*)this, 0, sizeof(*this)); }
 };
 
+namespace {
+    GLuint          g_ShaderHandle;
+    GLuint          g_FontTexture;
+}
+
 // Backend data stored in io.BackendRendererUserData to allow support for multiple Dear ImGui contexts
 // It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
 static ImGui_ImplOpenGL3_Data* ImGui_ImplOpenGL3_GetBackendData()
@@ -75,7 +78,13 @@ static ImGui_ImplOpenGL3_Data* ImGui_ImplOpenGL3_GetBackendData()
 }
 
 // Functions
-bool    ImGui_ImplOpenGL3_Init()
+
+bool ImGui_ImplOpenGL3_Init()
+{
+    return ImGui_ImplOpenGL3_CreateShader();
+}
+
+bool    ImGui_ImplOpenGL3_InitContext()
 {
     ImGuiIO& io = ImGui::GetIO();
     IMGUI_CHECKVERSION();
@@ -91,14 +100,24 @@ bool    ImGui_ImplOpenGL3_Init()
     GLint glProfileIsCompat = (glProfileMask & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) != 0;
 
 #ifdef IMGUI_IMPL_OPENGL_DEBUG
-    printf("GL_VERSION = \"%s\"\nCompatibility profile = %d\nProfile mask = 0x%X\nGL_VENDOR = '%s'\nGL_RENDERER = '%s'\n", (const char*)glGetString(GL_VERSION), glProfileIsCompat, glProfileMask, (const char*)glGetString(GL_VENDOR), (const char*)glGetString(GL_RENDERER)); // [DEBUG]
+    printf("GL_VERSION = \"%s\"\nCompatibility profile = %d\nProfile mask = "
+           "0x%X\nGL_VENDOR = '%s'\nGL_RENDERER = '%s'\n",
+           (const char *)glGetString(GL_VERSION), glProfileIsCompat,
+           glProfileMask, (const char *)glGetString(GL_VENDOR),
+           (const char *)glGetString(GL_RENDERER)); // [DEBUG]
 #endif
 
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
     return true;
 }
 
-void    ImGui_ImplOpenGL3_Shutdown()
+void ImGui_ImplOpenGL3_Shutdown()
+{
+    ImGui_ImplOpenGL3_DestroyShader();
+    ImGui_ImplOpenGL3_DestroyFontsTexture();
+}
+
+void    ImGui_ImplOpenGL3_ShutdownContext()
 {
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
@@ -116,10 +135,15 @@ void    ImGui_ImplOpenGL3_NewFrame()
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplOpenGL3_Init()?");
 
-    if (!bd->ShaderHandle)
-        ImGui_ImplOpenGL3_CreateDeviceObjects();
-    if (!bd->FontTexture)
+    if (!g_FontTexture) {
         ImGui_ImplOpenGL3_CreateFontsTexture();
+    }
+    if (!bd->VboHandle) {
+        ImGui_ImplOpenGL3_CreateDeviceObjects();
+    }
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->SetTexID((ImTextureID)(intptr_t)g_FontTexture);
 }
 
 static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_width, int fb_height, GLuint vertex_array_object)
@@ -158,7 +182,7 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
         { 0.0f,         0.0f,        -1.0f,   0.0f },
         { (R+L)/(L-R),  (T+B)/(B-T),  0.0f,   1.0f },
     };
-    glUseProgram(bd->ShaderHandle);
+    glUseProgram(g_ShaderHandle);
     glUniform1i(bd->AttribLocationTex, 0);
     glUniformMatrix4fv(bd->AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]);
     glBindSampler(0, 0); // We use combined texture/sampler state. Applications using GL 3.3 and GL ES 3.0 may set that otherwise.
@@ -313,17 +337,14 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
     // (Bilinear sampling is required by default. Set 'io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines' or 'style.AntiAliasedLinesUseTex = false' to allow point/nearest sampling)
     GLint last_texture;
     GL_CALL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
-    GL_CALL(glGenTextures(1, &bd->FontTexture));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, bd->FontTexture));
+    GL_CALL(glGenTextures(1, &g_FontTexture));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, g_FontTexture));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
     GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
-
-    // Store identifier
-    io.Fonts->SetTexID((ImTextureID)(intptr_t)bd->FontTexture);
 
     // Restore state
     GL_CALL(glBindTexture(GL_TEXTURE_2D, last_texture));
@@ -333,14 +354,17 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
 
 void ImGui_ImplOpenGL3_DestroyFontsTexture()
 {
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
-    if (bd->FontTexture)
+    if (g_FontTexture)
     {
-        glDeleteTextures(1, &bd->FontTexture);
-        io.Fonts->SetTexID(0);
-        bd->FontTexture = 0;
+        glDeleteTextures(1, &g_FontTexture);
+        g_FontTexture = 0;
     }
+}
+
+void ImGui_ImplOpenGL3_DetachFontsTexture()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->SetTexID(0);
 }
 
 // If you get an error please report on github. You may try different GL context version or GLSL version. See GL<>GLSL version table at the top of this file.
@@ -381,18 +405,11 @@ static bool CheckProgram(GLuint handle, const char* desc)
     return (GLboolean)status == GL_TRUE;
 }
 
-bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
+bool ImGui_ImplOpenGL3_CreateShader()
 {
-    ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
-
-    // Backup GL state
-    GLint last_texture, last_array_buffer;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
-    GLint last_pixel_unpack_buffer = 0;
-    glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &last_pixel_unpack_buffer); glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-    GLint last_vertex_array;
-    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
+    if (g_ShaderHandle) {
+        return true;
+    }
 
     static constexpr const GLchar* vertex_shader =
         "#version 460\n"
@@ -434,28 +451,47 @@ bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
     CheckShader(frag_handle, "fragment shader");
 
     // Link
-    bd->ShaderHandle = glCreateProgram();
-    glAttachShader(bd->ShaderHandle, vert_handle);
-    glAttachShader(bd->ShaderHandle, frag_handle);
-    glLinkProgram(bd->ShaderHandle);
-    CheckProgram(bd->ShaderHandle, "shader program");
+    g_ShaderHandle = glCreateProgram();
+    glAttachShader(g_ShaderHandle, vert_handle);
+    glAttachShader(g_ShaderHandle, frag_handle);
+    glLinkProgram(g_ShaderHandle);
+    CheckProgram(g_ShaderHandle, "shader program");
 
-    glDetachShader(bd->ShaderHandle, vert_handle);
-    glDetachShader(bd->ShaderHandle, frag_handle);
+    glDetachShader(g_ShaderHandle, vert_handle);
+    glDetachShader(g_ShaderHandle, frag_handle);
     glDeleteShader(vert_handle);
     glDeleteShader(frag_handle);
 
-    bd->AttribLocationTex = glGetUniformLocation(bd->ShaderHandle, "Texture");
-    bd->AttribLocationProjMtx = glGetUniformLocation(bd->ShaderHandle, "ProjMtx");
-    bd->AttribLocationVtxPos = (GLuint)glGetAttribLocation(bd->ShaderHandle, "Position");
-    bd->AttribLocationVtxUV = (GLuint)glGetAttribLocation(bd->ShaderHandle, "UV");
-    bd->AttribLocationVtxColor = (GLuint)glGetAttribLocation(bd->ShaderHandle, "Color");
+    return true;
+}
+
+void ImGui_ImplOpenGL3_DestroyShader()
+{
+    if (g_ShaderHandle) { glDeleteProgram(g_ShaderHandle); g_ShaderHandle = 0; }
+}
+
+bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
+{
+    ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
+
+    // Backup GL state
+    GLint last_texture, last_array_buffer;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
+    GLint last_pixel_unpack_buffer = 0;
+    glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &last_pixel_unpack_buffer); glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    GLint last_vertex_array;
+    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
+
+    bd->AttribLocationTex = glGetUniformLocation(g_ShaderHandle, "Texture");
+    bd->AttribLocationProjMtx = glGetUniformLocation(g_ShaderHandle, "ProjMtx");
+    bd->AttribLocationVtxPos = (GLuint)glGetAttribLocation(g_ShaderHandle, "Position");
+    bd->AttribLocationVtxUV = (GLuint)glGetAttribLocation(g_ShaderHandle, "UV");
+    bd->AttribLocationVtxColor = (GLuint)glGetAttribLocation(g_ShaderHandle, "Color");
 
     // Create buffers
     glGenBuffers(1, &bd->VboHandle);
     glGenBuffers(1, &bd->ElementsHandle);
-
-    ImGui_ImplOpenGL3_CreateFontsTexture();
 
     // Restore modified GL state
     glBindTexture(GL_TEXTURE_2D, last_texture);
@@ -471,8 +507,7 @@ void    ImGui_ImplOpenGL3_DestroyDeviceObjects()
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
     if (bd->VboHandle)      { glDeleteBuffers(1, &bd->VboHandle); bd->VboHandle = 0; }
     if (bd->ElementsHandle) { glDeleteBuffers(1, &bd->ElementsHandle); bd->ElementsHandle = 0; }
-    if (bd->ShaderHandle)   { glDeleteProgram(bd->ShaderHandle); bd->ShaderHandle = 0; }
-    ImGui_ImplOpenGL3_DestroyFontsTexture();
+    ImGui_ImplOpenGL3_DetachFontsTexture();
 }
 
 #if defined(__GNUC__)
