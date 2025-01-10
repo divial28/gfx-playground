@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace {
 struct WindowInfo
@@ -54,6 +55,8 @@ public:
     // bool HideWindow(Canvas* canvas);
     bool CloseWindow(Canvas* canvas);
     void CloseAllWindows();
+    void ProcessWindowsCreateQueue();
+    void ProcessWindowsDestroyQueue();
 
 private:
     SDL_Window*   fakeWindow_ = nullptr;
@@ -61,6 +64,8 @@ private:
     ImFontAtlas*  fontAtlas_ = nullptr;
 
     std::unordered_map<Canvas*, WindowInfo> windows_;
+    std::vector<WindowInfo> windowsCreateQueue_;
+    std::vector<WindowInfo> windowsDestroyQueue_;
 
     friend class App;
 };
@@ -107,7 +112,6 @@ static ImGuiContext* CreateImGuiContext(SDL_Window*      window,
                                         ImFontAtlas*     fontAtlas,
                                         std::string_view iniFilename)
 {
-
     auto* lastWindow = SDL_GL_GetCurrentWindow();
     auto* lastImGuiContext = ImGui::GetCurrentContext();
 
@@ -214,6 +218,8 @@ int AppImpl::Loop()
     while (!done) {
         done = ProcessEvents();
         UpdateWindows();
+        ProcessWindowsCreateQueue();
+        ProcessWindowsDestroyQueue();
     }
 
     return 0;
@@ -315,7 +321,7 @@ bool AppImpl::OpenWindow(Canvas* canvas)
     }
 
     wi.canvas = canvas;
-    windows_[canvas] = wi;
+    windowsCreateQueue_.push_back(wi);
     return true;
 }
 
@@ -330,12 +336,7 @@ bool AppImpl::CloseWindow(Canvas* canvas)
         return false;
     }
 
-    auto& wi = it->second;
-    DestroyImGuiContext(wi.imguiContext);
-    DestroyPlatformWindow(wi.window);
-    windows_.erase(it);
-    delete canvas; // FIXME
-
+    windowsDestroyQueue_.push_back(it->second);
     return true;
 }
 
@@ -347,6 +348,26 @@ void AppImpl::CloseAllWindows()
         DestroyPlatformWindow(wi.window);
         delete wi.canvas;
     }
+}
+
+void AppImpl::ProcessWindowsCreateQueue()
+{
+    for (auto& wi: windowsCreateQueue_) {
+        windows_[wi.canvas] = wi;
+    }
+    windowsCreateQueue_.clear();
+}
+
+void AppImpl::ProcessWindowsDestroyQueue()
+{
+    for (auto& wi: windowsDestroyQueue_) {
+        auto it = windows_.find(wi.canvas); // 100% there
+        windows_.erase(it);
+        DestroyImGuiContext(wi.imguiContext);
+        DestroyPlatformWindow(wi.window);
+        delete wi.canvas; // FIXME
+    }
+    windowsDestroyQueue_.clear();
 }
 
 App::App(int argc, char** argv)
