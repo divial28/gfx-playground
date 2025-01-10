@@ -1,6 +1,6 @@
 #include "../app.h"
-#include "main_canvas.h"
 #include "example_canvas.h"
+#include "main_canvas.h"
 
 #include <glad/glad.h>
 #include <imgui.h>
