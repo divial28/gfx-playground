@@ -3,15 +3,9 @@
 #include <glad/glad.h>
 #include <imgui.h>
 
-ExampleCanvas::ExampleCanvas()
-{
+ExampleCanvas::ExampleCanvas() { }
 
-}
-
-ExampleCanvas::~ExampleCanvas()
-{
-    
-}
+ExampleCanvas::~ExampleCanvas() { }
 
 void ExampleCanvas::BuildUI()
 {

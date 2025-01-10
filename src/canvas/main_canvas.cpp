@@ -1,19 +1,13 @@
+#include "main_canvas.h"
 #include "../app.h"
 #include "example_canvas.h"
-#include "main_canvas.h"
 
 #include <glad/glad.h>
 #include <imgui.h>
 
-MainCanvas::MainCanvas()
-{
+MainCanvas::MainCanvas() { }
 
-}
-
-MainCanvas::~MainCanvas()
-{
-    
-}
+MainCanvas::~MainCanvas() { }
 
 void MainCanvas::BuildUI()
 {
@@ -30,7 +24,7 @@ void MainCanvas::BuildUI()
             canvas = nullptr;
         }
     }
-    ImGui::End();  
+    ImGui::End();
 }
 
 void MainCanvas::Render()

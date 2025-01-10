@@ -15,60 +15,62 @@
 #include <unordered_map>
 
 namespace {
-    struct WindowInfo
-    {
-        SDL_Window* window;
-        ImGuiContext* imguiContext;
-        Canvas* canvas;
-    };
+struct WindowInfo
+{
+    SDL_Window*   window;
+    ImGuiContext* imguiContext;
+    Canvas*       canvas;
+};
 
-    class AppImpl
-    {
-    public:
-        AppImpl(int argc, char** argv);
-        ~AppImpl();
-        AppImpl(const AppImpl&) = delete;
-        AppImpl(AppImpl&&) = delete;
-        AppImpl& operator=(const AppImpl&) = delete;
-        AppImpl& operator=(AppImpl&&) = delete;
+class AppImpl
+{
+public:
+    AppImpl(int argc, char** argv);
+    ~AppImpl();
+    AppImpl(const AppImpl&) = delete;
+    AppImpl(AppImpl&&) = delete;
+    AppImpl& operator=(const AppImpl&) = delete;
+    AppImpl& operator=(AppImpl&&) = delete;
 
-    public:
-        void ParseCmdArgs(int argc, char** argv);
-        void Init();
-        void InitPlatform();
-        void InitRenderer();
-        void InitUI();
+public:
+    void ParseCmdArgs(int argc, char** argv);
+    void Init();
+    void InitPlatform();
+    void InitRenderer();
+    void InitUI();
 
-        int Loop();
-        bool ProcessEvents();
-        void ProcessEvent(WindowInfo& wi, SDL_Event& event);
-        void UpdateWindows();
+    int  Loop();
+    bool ProcessEvents();
+    void ProcessEvent(WindowInfo& wi, SDL_Event& event);
+    void UpdateWindows();
 
-        void Shutdown();
-        void ShutdownPlatform();
-        void ShutdownRenderer();
-        void ShutdownUI();
+    void Shutdown();
+    void ShutdownPlatform();
+    void ShutdownRenderer();
+    void ShutdownUI();
 
-        bool OpenWindow(Canvas* canvas);
-        // bool ShowWindow(Canvas* canvas);
-        // bool HideWindow(Canvas* canvas);
-        bool CloseWindow(Canvas* canvas);
-        void CloseAllWindows();
+    bool OpenWindow(Canvas* canvas);
+    // bool ShowWindow(Canvas* canvas);
+    // bool HideWindow(Canvas* canvas);
+    bool CloseWindow(Canvas* canvas);
+    void CloseAllWindows();
 
-    private:
-        SDL_Window* fakeWindow_ = nullptr;
-        SDL_GLContext glContext_;
-        ImFontAtlas* fontAtlas_ = nullptr;
+private:
+    SDL_Window*   fakeWindow_ = nullptr;
+    SDL_GLContext glContext_;
+    ImFontAtlas*  fontAtlas_ = nullptr;
 
-        std::unordered_map<Canvas*, WindowInfo> windows_;
+    std::unordered_map<Canvas*, WindowInfo> windows_;
 
-        friend class App;
-    };
+    friend class App;
+};
 
-    AppImpl* g_app = nullptr;
+AppImpl* g_app = nullptr;
 } // namespace
 
-static SDL_Window* CreatePlatformWindow(std::string_view title, int w = 1280, int h = 720, Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)
+static SDL_Window*
+CreatePlatformWindow(std::string_view title, int w = 1280, int h = 720,
+                     Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)
 {
     auto* window = SDL_CreateWindow(title.data(), w, h, flags);
     if (window == nullptr) {
@@ -100,7 +102,10 @@ static void DestroyGLContext(SDL_GLContext glContext)
     SDL_GL_DestroyContext(glContext);
 }
 
-static ImGuiContext* CreateImGuiContext(SDL_Window* window, SDL_GLContext glContext, ImFontAtlas* fontAtlas, std::string_view iniFilename)
+static ImGuiContext* CreateImGuiContext(SDL_Window*      window,
+                                        SDL_GLContext    glContext,
+                                        ImFontAtlas*     fontAtlas,
+                                        std::string_view iniFilename)
 {
 
     auto* lastWindow = SDL_GL_GetCurrentWindow();
@@ -126,9 +131,10 @@ static ImGuiContext* CreateImGuiContext(SDL_Window* window, SDL_GLContext glCont
 
 static void DestroyImGuiContext(ImGuiContext* imguiContext)
 {
-    auto *lastWindow = SDL_GL_GetCurrentWindow();
-    auto *lastGlContext = SDL_GL_GetCurrentContext(); // there is only one context
-    auto *lastImGuiContext = ImGui::GetCurrentContext();
+    auto* lastWindow = SDL_GL_GetCurrentWindow();
+    auto* lastGlContext
+        = SDL_GL_GetCurrentContext(); // there is only one context
+    auto* lastImGuiContext = ImGui::GetCurrentContext();
 
     ImGui::SetCurrentContext(imguiContext);
     ImGuiGLShutdownContext();
@@ -139,20 +145,11 @@ static void DestroyImGuiContext(ImGuiContext* imguiContext)
     ImGui::SetCurrentContext(lastImGuiContext);
 }
 
-AppImpl::AppImpl(int argc, char** argv)
-{
-    ParseCmdArgs(argc, argv);
-}
+AppImpl::AppImpl(int argc, char** argv) { ParseCmdArgs(argc, argv); }
 
-AppImpl::~AppImpl()
-{
-    
-}
+AppImpl::~AppImpl() { }
 
-void AppImpl::ParseCmdArgs(int argc, char** argv)
-{
-
-}
+void AppImpl::ParseCmdArgs(int argc, char** argv) { }
 
 void AppImpl::Init()
 {
@@ -163,20 +160,21 @@ void AppImpl::Init()
 
 void AppImpl::InitPlatform()
 {
-    if (!SDL_Init(SDL_INIT_VIDEO))
-    {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         printf("Error: SDL_Init(): %s\n", SDL_GetError());
         exit(1);
     }
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+                        SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-    fakeWindow_ = CreatePlatformWindow("fake window", 0, 0, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+    fakeWindow_ = CreatePlatformWindow("fake window", 0, 0,
+                                       SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
     if (!fakeWindow_) {
         printf("Could not create any window\n");
         SDL_Quit();
@@ -199,7 +197,7 @@ void AppImpl::InitRenderer()
         SDL_Quit();
         exit(1);
     }
-    
+
     SDL_GL_SetSwapInterval(1);
 }
 
@@ -212,8 +210,7 @@ void AppImpl::InitUI()
 int AppImpl::Loop()
 {
     bool done = false;
-    while (!done)
-    {
+    while (!done) {
         done = ProcessEvents();
         UpdateWindows();
     }
@@ -223,10 +220,9 @@ int AppImpl::Loop()
 
 bool AppImpl::ProcessEvents()
 {
-    bool done = false;
+    bool      done = false;
     SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
+    while (SDL_PollEvent(&event)) {
         for (auto& window : windows_) {
             ProcessEvent(window.second, event);
         }
@@ -242,8 +238,8 @@ void AppImpl::ProcessEvent(WindowInfo& wi, SDL_Event& event)
     ImGui::SetCurrentContext(wi.imguiContext);
     ImGuiSDL3ProcessEvent(&event);
 
-    if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-        event.window.windowID == SDL_GetWindowID(wi.window)) {
+    if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED
+        && event.window.windowID == SDL_GetWindowID(wi.window)) {
         SDL_HideWindow(wi.window);
     }
 }
@@ -252,7 +248,7 @@ void AppImpl::UpdateWindows()
 {
     for (auto& window : windows_) {
         auto& wi = window.second;
-        
+
         // build ui
         ImGui::SetCurrentContext(wi.imguiContext);
         ImGuiGLNewFrame();
@@ -291,10 +287,7 @@ void AppImpl::ShutdownRenderer()
     SDL_GL_DestroyContext(glContext_);
 }
 
-void AppImpl::ShutdownUI()
-{
-    ImGuiGLShutdown();
-}
+void AppImpl::ShutdownUI() { ImGuiGLShutdown(); }
 
 bool AppImpl::OpenWindow(Canvas* canvas)
 {
@@ -314,7 +307,7 @@ bool AppImpl::OpenWindow(Canvas* canvas)
     if (!wi.window) {
         return false;
     }
-    
+
     wi.imguiContext = CreateImGuiContext(wi.window, glContext_, fontAtlas_, "");
     if (!wi.imguiContext) {
         return false;
@@ -361,10 +354,7 @@ App::App(int argc, char** argv)
     g_app->Init();
 }
 
-App::~App()
-{
-    delete g_app;
-}
+App::~App() { delete g_app; }
 
 int App::Exec()
 {
@@ -387,4 +377,3 @@ bool App::CloseWindow(Canvas* canvas)
     assert(g_app);
     return g_app->CloseWindow(canvas);
 }
-
