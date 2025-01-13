@@ -51,6 +51,7 @@ public:
     void ShutdownUI();
 
     bool OpenWindow(Canvas* canvas);
+    bool IsOpened(Canvas* canvas) const;
     // bool ShowWindow(Canvas* canvas);
     // bool HideWindow(Canvas* canvas);
     bool CloseWindow(Canvas* canvas);
@@ -247,7 +248,7 @@ void AppImpl::ProcessEvent(WindowInfo& wi, SDL_Event& event)
 
     if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED
         && event.window.windowID == SDL_GetWindowID(wi.window)) {
-        SDL_HideWindow(wi.window);
+        App::CloseWindow(wi.canvas);
     }
 }
 
@@ -325,6 +326,11 @@ bool AppImpl::OpenWindow(Canvas* canvas)
     return true;
 }
 
+bool AppImpl::IsOpened(Canvas* canvas) const
+{
+    return windows_.find(canvas) != windows_.end();
+}
+
 bool AppImpl::CloseWindow(Canvas* canvas)
 {
     if (!canvas) {
@@ -392,6 +398,12 @@ bool App::OpenWindow(Canvas* canvas)
 {
     assert(g_app);
     return g_app->OpenWindow(canvas);
+}
+
+bool App::IsOpened(Canvas* canvas)
+{
+    assert(g_app);
+    return g_app->IsOpened(canvas);
 }
 
 bool App::CloseWindow(Canvas* canvas)

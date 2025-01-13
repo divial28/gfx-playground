@@ -67,8 +67,12 @@ void MainCanvas::TableRow(size_t i)
     ImGui::TableNextColumn();
     ImGui::Text("%s", example.title.c_str());
     ImGui::TableNextColumn();
-    if (ImGui::Button(example.canvas ? "Close" : "Open ")) {
-        if (example.canvas) {
+
+    bool shown = App::IsOpened(example.canvas);
+    example.canvas = shown ? example.canvas : nullptr;
+    
+    if (ImGui::Button(shown ? "Close" : "Open ")) {
+        if (shown) {
             App::CloseWindow(example.canvas);
             example.canvas = nullptr;
         } else {

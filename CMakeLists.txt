@@ -33,8 +33,13 @@ target_include_directories( ${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/glad/include
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/glm
 )
 
 target_link_libraries( ${PROJECT_NAME}
     PRIVATE SDL3::SDL3
+)
+
+target_compile_definitions( ${PROJECT_NAME} PRIVATE
+    "OPENGL_DEBUG"
 )

@@ -36,5 +36,5 @@ uint32_t Utils::GetNextColorU32FromPalette()
 
 Color Utils::GetNextColorFromPalette()
 {
-    return Convert(GetNextColorU32FromPalette());
+    return Color::Convert(GetNextColorU32FromPalette());
 }

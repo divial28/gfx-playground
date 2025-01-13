@@ -15,5 +15,6 @@ public:
     int Exec();
 
     static bool OpenWindow(Canvas* canvas);
+    static bool IsOpened(Canvas* canvas);
     static bool CloseWindow(Canvas* canvas);
 };
