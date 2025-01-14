@@ -22,7 +22,7 @@ private:
     GLuint modelLoc_ = 0;
     GLuint projectionLoc_ = 0;
 
-    float debugDist_ = 1.0f;
+    float debugDist_ = -1.0f;
     float near_ = 0.001;
     float far_ = 100;
     bool  projectionCalc_ = true;

@@ -216,11 +216,20 @@ void AppImpl::InitUI()
 int AppImpl::Loop()
 {
     bool done = false;
+    
+    constexpr uint8_t frameLength = 16; // ~60Hz
+    uint64_t nextFrameStart = SDL_GetTicks() + frameLength;
+
     while (!done) {
-        done = ProcessEvents();
-        UpdateWindows();
         ProcessWindowsCreateQueue();
         ProcessWindowsDestroyQueue();
+        done = ProcessEvents();
+
+        auto t = SDL_GetTicks();
+        if (t > nextFrameStart) {
+            nextFrameStart += frameLength;
+            UpdateWindows();
+        }
     }
 
     return 0;
