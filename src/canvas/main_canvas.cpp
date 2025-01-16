@@ -1,10 +1,9 @@
-#include "main_canvas.h"
-#include "01_hello_triangle.h"
-#include "02_draw_commands.h"
 #include "app.h"
+#include "canvas/01_hello_triangle.h"
+#include "canvas/02_draw_commands.h"
+#include "canvas/03_dsa_buffers.h"
+#include "main_canvas.h"
 
-#include <array>
-#include <format>
 #include <glad/glad.h>
 #include <imgui.h>
 
@@ -51,6 +50,8 @@ void MainCanvas::FillExamplesVector()
                            []() -> Canvas* { return new HelloTriangleCanvas; });
     examples_.emplace_back("Draw Commands",
                            []() -> Canvas* { return new DrawCommandsCanvas; });
+    examples_.emplace_back("DSA buffers",
+                           []() -> Canvas* { return new DsaBuffersCanvas; });
 }
 
 void MainCanvas::TableRow(size_t i)
