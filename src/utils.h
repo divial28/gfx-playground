@@ -1,5 +1,6 @@
 #pragma once
 
+#include <imgui.h>
 #include <cassert>
 #include <cstdint>
 
@@ -56,6 +57,16 @@ constexpr uint32_t Reverse(uint32_t n)
 {
     return ((n << 24) & 0xff000000) + ((n << 8)  & 0x00ff0000)
          + ((n >> 8)  & 0x0000ff00) + ((n >> 24) & 0x000000ff);
+}
+
+inline bool operator > (const ImVec2& l, const ImVec2& r)
+{
+    return l.x > r.x && l.y > r.y;
+}
+
+inline bool operator < (const ImVec2& l, const ImVec2& r)
+{
+    return r > l;
 }
 
 namespace Utils {
