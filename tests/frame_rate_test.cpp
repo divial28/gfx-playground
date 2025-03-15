@@ -1,10 +1,11 @@
 #include <SDL3/SDL.h>
+#include <array>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <glad/glad.h>
+#include <spdlog/spdlog.h>
 #include <string_view>
-#include <array>
-#include <chrono>
 
 constexpr int g_count = 1;
 
@@ -14,7 +15,7 @@ SDL_Window* CreateWindow(std::string_view title)
                                     SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
                                         | SDL_WINDOW_TRANSPARENT);
     if (window == nullptr) {
-        printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
+        spdlog::error("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
         SDL_Quit();
         exit(1);
     }
@@ -27,7 +28,7 @@ int main()
     std::array<SDL_Window*, g_count> windows;
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        printf("Error: SDL_Init(): %s\n", SDL_GetError());
+        spdlog::error("Error: SDL_Init(): %s\n", SDL_GetError());
         exit(1);
     }
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -46,18 +47,17 @@ int main()
         windows[i] = CreateWindow("frame_rate_test");
         SDL_SetWindowPosition(windows[i], 100, 100 + 200 * i);
     }
-    
 
     SDL_GLContext glContext = SDL_GL_CreateContext(windows[0]);
     if (glContext == nullptr) {
-        printf("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
+        spdlog::error("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
         SDL_Quit();
         exit(1);
     }
 
     SDL_GL_MakeCurrent(windows[0], glContext);
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
-        printf("Error: gladLoadGLLoader() failed\n");
+        spdlog::error("Error: gladLoadGLLoader() failed\n");
         SDL_Quit();
         exit(1);
     }
@@ -71,14 +71,15 @@ int main()
             .count();
     };
     constexpr auto frameLength = 16;
-    uint64_t nextFrameStart = getTicksMs() + frameLength;
-    bool frameRendered = false;
+    uint64_t       nextFrameStart = getTicksMs() + frameLength;
+    bool           frameRendered = false;
 
     bool done = false;
     while (!done) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+            if (event.type == SDL_EVENT_QUIT
+                || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
                 done = true;
             }
         }
@@ -107,6 +108,6 @@ int main()
         SDL_DestroyWindow(windows[i]);
     }
     SDL_Quit();
-    
+
     return 0;
 }

@@ -2,6 +2,7 @@
 #include "gl/framework.h"
 
 #include <imgui.h>
+#include <spdlog/spdlog.h>
 
 DsaBuffersCanvas::DsaBuffersCanvas() 
 {
@@ -13,7 +14,7 @@ DsaBuffersCanvas::DsaBuffersCanvas()
         out vec3 fColor;
         void main()
         {
-            fColor = vColor;
+            fColor = aColor;
             gl_Position = vec4(vPos, 0.0, 1.0f);
         })",
         R"(#version 460 core

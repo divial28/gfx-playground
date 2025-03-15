@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(gplay)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # SDL
 set(SDL_AUDIO_DEFAULT OFF)
@@ -16,6 +18,10 @@ set(SDL_SENSOR_DEFAULT OFF)
 set(SDL_DIALOG_DEFAULT OFF)
 set(SDL_THREADS_DEFAULT OFF)
 add_subdirectory(externals/SDL EXCLUDE_FROM_ALL)
+
+#spdlog
+set(SPDLOG_USE_STD_FORMAT ON)
+add_subdirectory(externals/spdlog EXCLUDE_FROM_ALL)
 
 file(GLOB_RECURSE SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
@@ -33,18 +39,22 @@ target_include_directories( ${PROJECT_NAME}
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/glad/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/glm
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/spdlog/include
 )
 
 target_link_libraries( ${PROJECT_NAME}
-    PRIVATE SDL3::SDL3
+    PRIVATE SDL3::SDL3 spdlog
 )
 
 target_compile_definitions( ${PROJECT_NAME} 
-    PRIVATE "OPENGL_DEBUG"
+    PRIVATE "OPENGL_DEBUG" "IMGUI_DEFINE_MATH_OPERATORS" 
+    "SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE"
 )
 
+
+# frame rate test
 
 add_executable( frame_rate_test 
     ${CMAKE_CURRENT_SOURCE_DIR}/tests/frame_rate_test.cpp
@@ -52,9 +62,11 @@ add_executable( frame_rate_test
 )
 
 target_include_directories( frame_rate_test 
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/externals/glad/include
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/glad/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/spdlog/include
 )
 
 target_link_libraries( frame_rate_test 
-    PRIVATE SDL3::SDL3
+    PRIVATE SDL3::SDL3 spdlog
 )

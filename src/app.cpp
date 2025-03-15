@@ -1,9 +1,10 @@
 #include "app.h"
 #include "canvas/canvas.h"
 
-#include <SDL3/SDL.h>
 #include <glad/glad.h>
 #include <imgui.h>
+#include <SDL3/SDL.h>
+#include <spdlog/spdlog.h>
 
 #include "./backends/imgui_impl_opengl3.h"
 #include "./backends/imgui_impl_sdl3.h"
@@ -36,6 +37,7 @@ public:
 public:
     void ParseCmdArgs(int argc, char** argv);
     void Init();
+    void InitLogger();
     void InitPlatform();
     void InitRenderer();
     void InitUI();
@@ -52,8 +54,6 @@ public:
 
     bool OpenWindow(Canvas* canvas);
     bool IsOpened(Canvas* canvas) const;
-    // bool ShowWindow(Canvas* canvas);
-    // bool HideWindow(Canvas* canvas);
     bool CloseWindow(Canvas* canvas);
     void CloseAllWindows();
     void ProcessWindowsCreateQueue();
@@ -80,7 +80,7 @@ CreatePlatformWindow(std::string_view title, int w = 1280, int h = 720,
 {
     auto* window = SDL_CreateWindow(title.data(), w, h, flags);
     if (window == nullptr) {
-        printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
+        SPDLOG_ERROR("SDL_CreateWindow(): %s\n", SDL_GetError());
     }
     return window;
 }
@@ -97,7 +97,7 @@ static SDL_GLContext CreateGLContext(SDL_Window* window)
 {
     SDL_GLContext glContext = SDL_GL_CreateContext(window);
     if (glContext == nullptr) {
-        printf("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
+        SPDLOG_ERROR("SDL_GL_CreateContext(): %s\n", SDL_GetError());
     }
     return glContext;
 }
@@ -156,15 +156,23 @@ void AppImpl::ParseCmdArgs(int argc, char** argv) { }
 
 void AppImpl::Init()
 {
+    InitLogger();
     InitPlatform();
     InitRenderer();
     InitUI();
 }
 
+void AppImpl::InitLogger()
+{
+    // [time with microseconds] [error level] [func:line] msg
+    spdlog::set_pattern("[%H:%M:%S.%f] [%^%L%$] [%!:%#] %v");
+    spdlog::set_level(spdlog::level::trace);
+}
+
 void AppImpl::InitPlatform()
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        printf("Error: SDL_Init(): %s\n", SDL_GetError());
+        SPDLOG_ERROR("SDL_Init(): %s\n", SDL_GetError());
         exit(1);
     }
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -179,7 +187,7 @@ void AppImpl::InitPlatform()
     fakeWindow_ = CreatePlatformWindow("fake window", 0, 0,
                                        SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
     if (!fakeWindow_) {
-        printf("Could not create any window\n");
+        SPDLOG_ERROR("Could not create any window\n");
         SDL_Quit();
         exit(1);
     }
@@ -189,14 +197,14 @@ void AppImpl::InitRenderer()
 {
     glContext_ = CreateGLContext(fakeWindow_);
     if (!glContext_) {
-        printf("Could not create any gl context\n");
+        SPDLOG_ERROR("Could not create any gl context\n");
         SDL_Quit();
         exit(1);
     }
 
     SDL_GL_MakeCurrent(fakeWindow_, glContext_);
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
-        printf("Error: gladLoadGLLoader() failed\n");
+        SPDLOG_ERROR("gladLoadGLLoader() failed\n");
         SDL_Quit();
         exit(1);
     }

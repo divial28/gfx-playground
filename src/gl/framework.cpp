@@ -9,13 +9,13 @@ bool GL::CheckShader(GLuint handle, const char* desc)
     glGetShaderiv(handle, GL_COMPILE_STATUS, &status);
     glGetShaderiv(handle, GL_INFO_LOG_LENGTH, &logLength);
     if ((GLboolean)status == GL_FALSE) {
-        fprintf(stderr, "ERROR: failed to compile: %s!\n", desc);
+        SPDLOG_ERROR("failed to compile: {}!", desc);
     }
     if (logLength > 1) {
         std::string buf;
         buf.resize((int)(logLength + 1));
         glGetShaderInfoLog(handle, logLength, nullptr, (GLchar*)buf.data());
-        fprintf(stderr, "%s\n", buf.c_str());
+        SPDLOG_ERROR(buf);
     }
     return (GLboolean)status == GL_TRUE;
 }
@@ -26,13 +26,13 @@ bool GL::CheckProgram(GLuint handle, const char* desc)
     glGetProgramiv(handle, GL_LINK_STATUS, &status);
     glGetProgramiv(handle, GL_INFO_LOG_LENGTH, &logLength);
     if ((GLboolean)status == GL_FALSE) {
-        fprintf(stderr, "ERROR: failed to link: %s!\n", desc);
+        SPDLOG_ERROR("failed to link: {}!", desc);
     }
     if (logLength > 1) {
         std::string buf;
         buf.resize((int)(logLength + 1));
         glGetProgramInfoLog(handle, logLength, nullptr, (GLchar*)buf.data());
-        fprintf(stderr, "%s\n", buf.c_str());
+        SPDLOG_ERROR(buf);
     }
     return (GLboolean)status == GL_TRUE;
 }

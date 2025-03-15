@@ -23,6 +23,10 @@
 #include <glad/glad.h>
 #include <stdint.h> // intptr_t
 
+#ifdef IMGUI_IMPL_OPENGL_DEBUG
+#include <spdlog/spdlog.h>
+#endif
+
 
 // Clang/GCC warnings with -Weverything
 #if defined(__clang__)
@@ -107,7 +111,7 @@ bool ImGuiGLInitContext()
         = (glProfileMask & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) != 0;
 
 #ifdef IMGUI_IMPL_OPENGL_DEBUG
-    printf("GL_VERSION = \"%s\"\nCompatibility profile = %d\nProfile mask = "
+    spdlog::debug("GL_VERSION = \"%s\"\nCompatibility profile = %d\nProfile mask = "
            "0x%X\nGL_VENDOR = '%s'\nGL_RENDERER = '%s'\n",
            (const char*)glGetString(GL_VERSION), glProfileIsCompat,
            glProfileMask, (const char*)glGetString(GL_VENDOR),
