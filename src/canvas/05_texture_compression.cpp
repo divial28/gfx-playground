@@ -1,9 +1,10 @@
 #include "05_texture_compression.h"
 #include "gl/framework.h"
 #include "utils.h"
-#include "app.h"
 
 #include <imgui.h>
+#include <imgui_stdlib.h>
+#include <nfd.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -45,11 +46,7 @@ TextureCompressionCanvas::TextureCompressionCanvas()
     );
 
     FetchSupportedCompressions();
-    for (int i = 0; i < 2; ++i) {
-        compressions_[i] = 0;
-        DeleteTexture(textures_[i]);
-        textures_[i] = LoadTexture("./assets/Lenna_(test_image).png", supportedCompressions_[compressions_[i]]);
-    }
+    UpdateAllTextures();
 }
 
 TextureCompressionCanvas::~TextureCompressionCanvas() 
@@ -59,11 +56,34 @@ TextureCompressionCanvas::~TextureCompressionCanvas()
 
 void TextureCompressionCanvas::BuildUI()
 {
-    ImGui::Begin("test");
+    ImGui::Begin("Texture options");
+    ImGui::InputText("##image", &imagePath_, ImGuiInputTextFlags_ReadOnly);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("open")) {
+        nfdu8char_t *outPath;
+        nfdu8filteritem_t filters[1] = { { "Image", "png,jpg,jpeg,tiff" } };
+        nfdopendialogu8args_t args = {0};
+        args.filterCount = 1;
+        args.filterList = filters;
+        args.defaultPath = "./assets";
+        nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
+        if (result == NFD_OKAY)
+        {
+            imagePath_ = outPath;
+            NFD_FreePathU8(outPath);
+            UpdateAllTextures();
+        }
+        else if (result != NFD_CANCEL)
+        {
+            SPDLOG_ERROR("Failed to open file: {}", NFD_GetError());
+        }
+    }
+
     for (int i = 0; i < 2; ++i) {
         int value = compressions_[i];
+        ImGui::Text("texture %d compression", i);
         ImGui::Combo(
-            std::format("texture {} compression", i).c_str(), &value,
+            std::format("##texture {} compression", i).c_str(), &value,
             [](void* data, int n) {
                 return GetCompressionName(*((GLenum*)data + n)).c_str();
             },
@@ -71,10 +91,11 @@ void TextureCompressionCanvas::BuildUI()
         if (value != compressions_[i]) {
             compressions_[i] = value;
             DeleteTexture(textures_[i]);
-            textures_[i] = LoadTexture("./assets/Lenna_(test_image).png", supportedCompressions_[compressions_[i]]);
+            textures_[i] = LoadTexture(imagePath_, supportedCompressions_[compressions_[i]]);
         }
     }
     ImGui::SliderFloat("edge", &edge_, 0.001f, 1.0f);
+    ImGui::SliderFloat("zoom", &zoom_, 0.001f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
     ImGui::End();
 }
 
@@ -82,9 +103,11 @@ void TextureCompressionCanvas::Render()
 {
     const auto size = ImGui::GetMainViewport()->Size;
     const auto aspect = size.x / size.y;
-    proj_ = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);    
+    proj_ = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
 
-    glViewport(250 + (size.x - imageSize_.x) / 2, (size.y - imageSize_.y) / 2, imageSize_.x, imageSize_.y);
+    glViewport(250 + (size.x - imageSize_.x * zoom_) / 2,
+               (size.y - imageSize_.y * zoom_) / 2, imageSize_.x * zoom_,
+               imageSize_.y * zoom_);
     glClearColor(bgColor_.r, bgColor_.g, bgColor_.b, bgColor_.a);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -96,7 +119,7 @@ void TextureCompressionCanvas::Render()
         glUniform1i(loc, i);
     }
 
-    glUniform1f(glGetUniformLocation(shader_, "edge"), 250 + (size.x - imageSize_.x) / 2 + edge_ * imageSize_.y);
+    glUniform1f(glGetUniformLocation(shader_, "edge"), 250 + (size.x - imageSize_.x * zoom_) / 2 + edge_ * imageSize_.x * zoom_);
     glUniformMatrix4fv(glGetUniformLocation(shader_, "proj"), 1, GL_FALSE, glm::value_ptr(proj_));
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -108,6 +131,7 @@ void TextureCompressionCanvas::Render()
 
 void TextureCompressionCanvas::FetchSupportedCompressions()
 {
+    // FIXME: DEPRECATED METHOD! need to check compression formats in different way
     supportedCompressions_ = {GL_NONE};
 
     GLint numCompressedFormats;
@@ -158,7 +182,7 @@ GLuint TextureCompressionCanvas::LoadTexture(const std::string& path, GLenum com
         glTexImage2D(GL_TEXTURE_2D, 0,
                      compression == GL_NONE ? format : compression, width,
                      height, 0, format, GL_UNSIGNED_BYTE, data);
-        GLuint size = width * height * nrChannels;
+        GLuint size = width * height * 4;
         GLint compressedSize = 0;
         GL_CALL(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize));
         SPDLOG_DEBUG(
@@ -167,13 +191,23 @@ GLuint TextureCompressionCanvas::LoadTexture(const std::string& path, GLenum com
         // glGenerateMipmap(GL_TEXTURE_2D); // Generate mipmaps
         imageSize_ = ImVec2{(float)width, (float)height};
     } else {
-        SPDLOG_ERROR("Failed to load texture: %s", path);
+        SPDLOG_ERROR("Failed to load texture: {}", path);
+        imageSize_ = ImVec2{0.0f, 0.0f};
     }
 
     // Free the image data
     stbi_image_free(data);
 
     return textureID;
+}
+
+void TextureCompressionCanvas::UpdateAllTextures()
+{
+    for (int i = 0; i < 2; ++i) {
+        compressions_[i] = 0;
+        DeleteTexture(textures_[i]);
+        textures_[i] = LoadTexture(imagePath_, supportedCompressions_[compressions_[i]]);
+    }
 }
 
 void TextureCompressionCanvas::DeleteTexture(GLuint texture)

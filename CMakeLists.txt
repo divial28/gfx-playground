@@ -23,6 +23,8 @@ add_subdirectory(externals/SDL EXCLUDE_FROM_ALL)
 set(SPDLOG_USE_STD_FORMAT ON)
 add_subdirectory(externals/spdlog EXCLUDE_FROM_ALL)
 
+add_subdirectory(externals/nativefiledialog-extended EXCLUDE_FROM_ALL)
+
 file(GLOB_RECURSE SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_executable( ${PROJECT_NAME} 
@@ -33,6 +35,7 @@ add_executable( ${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui_draw.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui_tables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/misc/cpp/imgui_stdlib.cpp
 )
 
 target_include_directories( ${PROJECT_NAME}
@@ -41,12 +44,14 @@ target_include_directories( ${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/glad/include
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/glm
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui/misc/cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/spdlog/include
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/stb
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/nativefiledialog-extended/src/include
 )
 
 target_link_libraries( ${PROJECT_NAME}
-    PRIVATE SDL3::SDL3 spdlog
+    PRIVATE SDL3::SDL3 spdlog nfd
 )
 
 target_compile_definitions( ${PROJECT_NAME} 

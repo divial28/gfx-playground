@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
+#include <nfd.hpp>
 
 #include "./backends/imgui_impl_opengl3.h"
 #include "./backends/imgui_impl_sdl3.h"
@@ -160,6 +161,7 @@ void AppImpl::Init()
     InitPlatform();
     InitRenderer();
     InitUI();
+    NFD_Init();
 }
 
 void AppImpl::InitLogger()
@@ -298,6 +300,7 @@ void AppImpl::Shutdown()
     ShutdownUI();
     ShutdownRenderer();
     ShutdownPlatform();
+    NFD_Quit();
 }
 
 void AppImpl::ShutdownPlatform()
