@@ -11,3 +11,9 @@
 [submodule "externals/spdlog"]
 	path = externals/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "externals/stb"]
+	path = externals/stb
+	url = https://github.com/nothings/stb.git
+[submodule "externals/nativefiledialog-extended"]
+	path = externals/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended.git
