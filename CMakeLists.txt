@@ -42,6 +42,7 @@ target_include_directories( ${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/glm
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/spdlog/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/stb
 )
 
 target_link_libraries( ${PROJECT_NAME}
@@ -70,3 +71,6 @@ target_include_directories( frame_rate_test
 target_link_libraries( frame_rate_test 
     PRIVATE SDL3::SDL3 spdlog
 )
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND}
+    -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/assets)

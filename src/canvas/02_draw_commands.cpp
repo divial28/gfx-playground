@@ -81,6 +81,7 @@ DrawCommandsCanvas::~DrawCommandsCanvas()
     glDeleteBuffers(1, &vboVertices_);
     glDeleteBuffers(1, &vboColors_);
     glDeleteBuffers(1, &vao_);
+    glDeleteProgram(shader_);
 }
 
 using mat4 = DrawCommandsCanvas::mat4;

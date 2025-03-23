@@ -27,7 +27,10 @@ HelloTriangleCanvas::HelloTriangleCanvas()
     );
 }
 
-HelloTriangleCanvas::~HelloTriangleCanvas() { }
+HelloTriangleCanvas::~HelloTriangleCanvas() 
+{
+    glDeleteProgram(shader_);
+}
 
 void HelloTriangleCanvas::BuildUI()
 {

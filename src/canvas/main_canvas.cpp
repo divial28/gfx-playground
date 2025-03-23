@@ -3,6 +3,7 @@
 #include "canvas/02_draw_commands.h"
 #include "canvas/03_dsa_buffers.h"
 #include "canvas/04_mesh_editor.h"
+#include "canvas/05_texture_compression.h"
 #include "main_canvas.h"
 
 #include <glad/glad.h>
@@ -54,7 +55,9 @@ void MainCanvas::FillExamplesVector()
     examples_.emplace_back("DSA buffers",
                            []() -> Canvas* { return new DsaBuffersCanvas; });
     examples_.emplace_back("Mesh editor",
-                            []() -> Canvas* { return new MeshEditorCanvas; });
+                           []() -> Canvas* { return new MeshEditorCanvas; });
+    examples_.emplace_back("Texture compression",
+                           []() -> Canvas* { return new TextureCompressionCanvas; });
 }
 
 void MainCanvas::TableRow(size_t i)

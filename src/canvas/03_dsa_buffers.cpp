@@ -30,6 +30,7 @@ DsaBuffersCanvas::DsaBuffersCanvas()
 DsaBuffersCanvas::~DsaBuffersCanvas() 
 {
     DestroyBuffers();
+    glDeleteProgram(shader_);
 }
 
 void DsaBuffersCanvas::BuildUI()
