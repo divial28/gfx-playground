@@ -19,6 +19,7 @@ public:
 private:
     void FetchSupportedCompressions();
     GLuint LoadTexture(const std::string& path, GLenum compression = GL_NONE);
+
     void DeleteTexture(GLuint texture);
     void UpdateAllTextures();
     static const std::string& GetCompressionName(GLenum compression);

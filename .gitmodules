@@ -17,3 +17,9 @@
 [submodule "externals/nativefiledialog-extended"]
 	path = externals/nativefiledialog-extended
 	url = https://github.com/btzy/nativefiledialog-extended.git
+[submodule "externals/astc-encoder"]
+	path = externals/astc-encoder
+	url = https://github.com/ARM-software/astc-encoder.git
+[submodule "rex"]
+	path = rex
+	url = https://github.com/divial28/rex.git
